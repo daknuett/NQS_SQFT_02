@@ -160,5 +160,6 @@ rule imaginary_time_evolution_Ecurrsubtract:
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/models/model_{t_stop}_{steps}_{ainvsquared}.pt",
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/energy/energy_{t_stop}_{steps}_{ainvsquared}.npy",
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/manifold_eror/mfe_{t_stop}_{steps}_{ainvsquared}.npy",
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/energy/esubtract_{t_stop}_{steps}_{ainvsquared}.npy",
     script:
         "scripts/01_B_ite_ecurr_subtract.py"

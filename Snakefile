@@ -163,3 +163,32 @@ rule imaginary_time_evolution_Ecurrsubtract:
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/energy/esubtract_{t_stop}_{steps}_{ainvsquared}.npy",
     script:
         "scripts/01_B_ite_ecurr_subtract.py"
+
+
+
+
+rule imaginary_time_evolution_normpreserve:
+    resources:
+        runtime=460,
+        slurm_extra="'--gres=gpu:a40:1'",
+    params:
+        module_path = os.path.abspath("./lib"),
+        svd_cut = 1e-4,
+        regulator = 1e-3,
+        seed = 0xdeadbeef,
+        sampling_sigma = 1,
+        sampling_decorr = 5,
+        sampling_equilibrate = 50,
+        save_every_t = 0.1,
+        initial_time = 0.1,
+        initial_undersampling = 2,
+        initial_boundary_factor = 0.6,
+        initial_stepwidth_factor = 0.5,
+    output:
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/models/model_{t_stop}_{steps}_{ainvsquared}.pt",
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/energy/energy_{t_stop}_{steps}_{ainvsquared}.npy",
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/manifold_eror/mfe_{t_stop}_{steps}_{ainvsquared}.npy",
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/energy/esubtract_{t_stop}_{steps}_{ainvsquared}.npy",
+        "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/norm/snref_{t_stop}_{steps}_{ainvsquared}.npy",
+    script:
+        "scripts/01_C_ite_subtract_normpreserve.py"

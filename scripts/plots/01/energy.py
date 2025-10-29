@@ -26,8 +26,8 @@ e_gs = lambda ainvsquared, ndof: (0.5 * omega_k(ainvsquared, np.arange(0, ndof, 
 axs[0].plot(time, energy.real)
 axs[0].set_ylabel(r"$<E>$")
 axs[0].set_title(
-    fr"Sites: {ndof}; $\Delta t = {delta:.1e}$; {snakemake.wildcards.integrator}; $N_S={n_samples}$; "
-    fr"Model: Conv, {model_layout}; $\beta={snakemake.wildcards.ainvsquared}$"
+    fr"Sts: {ndof}; $\Delta t = {delta:.1e}$; {snakemake.wildcards.integrator}; $N_S={n_samples}$; " "\n"
+    fr"Model: {model_layout}; $\beta={snakemake.wildcards.ainvsquared}$, {snakemake.wildcards.E_subtract_or_descr}"
 )
 axs[0].set_yscale("log")
 

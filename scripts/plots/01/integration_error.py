@@ -6,7 +6,6 @@ matplotlib.style.use(snakemake.params.mplstyle)
 
 import sys
 sys.path.insert(0, snakemake.params.module_path)
-from model import Model, get_n_params
 
 ndof = int(snakemake.wildcards.ndof)
 model_layout = (ndof, snakemake.wildcards.model_layout)
@@ -24,8 +23,8 @@ plt.yscale("log")
 plt.xlabel(r"$t$")
 plt.ylabel(r"$|M\vec{a} - \vec{E}^{L}| / |\vec{E}^{L}| $" "\nwhere" r" $\vec{a} = S^{-1} M^T \vec{E}^{L}$")
 plt.title(
-    fr"Sites: {ndof}; $\Delta t = {delta:.1e}$; {snakemake.wildcards.integrator}; $N_S={n_samples}$; "
-    fr"Model: Conv, {model_layout}; $\beta={snakemake.wildcards.ainvsquared}$"
+    fr"Sts: {ndof}; $\Delta t = {delta:.1e}$; {snakemake.wildcards.integrator}; $N_S={n_samples}$; " "\n"
+    fr"Model: {model_layout}; $\beta={snakemake.wildcards.ainvsquared}$, {snakemake.wildcards.E_subtract_or_descr}"
     )
 
 plt.savefig(snakemake.output[0])

@@ -23,7 +23,6 @@ rule all:
                , t_stop=1.4
                , steps=[700]
                , ainvsquared=[1.0]
-               , E_subtract=6.5
                ),
         expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/energy/energy_{t_stop}_{steps}_{ainvsquared}.png"
                , ndof=[8]
@@ -34,7 +33,6 @@ rule all:
                , t_stop=1.4
                , steps=[700]
                , ainvsquared=[1.0]
-               , E_subtract=6.5
                ),
         expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/manifold_eror/mfe_{t_stop}_{steps}_{ainvsquared}.png"
                , ndof=[8]
@@ -45,7 +43,6 @@ rule all:
                , t_stop=1.4
                , steps=[700]
                , ainvsquared=[1.0]
-               , E_subtract=6.5
                ),
         expand("data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_{E_subtract}/models/model_{t_stop}_{steps}_{ainvsquared}.pt"
                , ndof=[8]
@@ -80,6 +77,73 @@ rule all:
                , ainvsquared=[1.0]
                , E_subtract=6.5
                ),
+        expand("data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/models/model_{t_stop}_{steps}_{ainvsquared}.pt"
+               , ndof=[8]
+               , model_layout=["C6L4","C6B4", "D6L8", "C3L4","C3B4", "D3L20"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0]
+               ),
+        expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/energy/energy_{t_stop}_{steps}_{ainvsquared}.png"
+               , ndof=[8]
+               , model_layout=["C6L4","C6B4", "D6L8", "C3L4","C3B4", "D3L20"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0]
+               ),
+        expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/manifold_eror/mfe_{t_stop}_{steps}_{ainvsquared}.png"
+               , ndof=[8]
+               , model_layout=["C6L4","C6B4", "D6L8", "C3L4","C3B4", "D3L20"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0]
+               ),
+
+
+        # Less models more couplings
+        expand("data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_{E_subtract_or_descr}/models/model_{t_stop}_{steps}_{ainvsquared}.pt"
+               , ndof=[8]
+               , model_layout=["C6L4","D6L8", "C3L4"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0, 2, 5, 10, 20, 40]
+               , E_subtract_or_descr=["SCE", "APN", 6.5, 10.0]
+               ),
+        expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_{E_subtract_or_descr}/energy/energy_{t_stop}_{steps}_{ainvsquared}.png"
+               , ndof=[8]
+               , model_layout=["C6L4","D6L8", "C3L4"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0, 2, 5, 10, 20, 40]
+               , E_subtract_or_descr=["SCE", "APN", 6.5, 10.0]
+               ),
+        expand("data/plots/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_{E_subtract_or_descr}/manifold_eror/mfe_{t_stop}_{steps}_{ainvsquared}.png"
+               , ndof=[8]
+               , model_layout=["C6L4","D6L8", "C3L4"]
+               , integrator="Euler1"
+               , n_samples=[2000]
+               , boundary=10
+               , t_stop=1.4
+               , steps=[700]
+               , ainvsquared=[1.0, 2, 5, 10, 20, 40]
+               , E_subtract_or_descr=["SCE", "APN", 6.5, 10.0]
+               ),
+
 
 rule imaginary_time_evolution_Econstsubtract:
     resources:
@@ -185,6 +249,7 @@ rule imaginary_time_evolution_normpreserve:
         initial_undersampling = 2,
         initial_boundary_factor = 0.6,
         initial_stepwidth_factor = 0.5,
+        esubtract_dampening=0.01,
     output:
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/models/model_{t_stop}_{steps}_{ainvsquared}.pt",
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_APN/energy/energy_{t_stop}_{steps}_{ainvsquared}.npy",

@@ -72,6 +72,8 @@ steps_left = int((t_stop - t_stop_initial) / delta)
 save_every_n_initial = int(save_every_t / delta_initial)
 sampling_shape_initial = (int(n_samples / initial_undersampling), ndof)
 
+e_subtract_damping = snakemake.params.e_subtract_damping
+
 torch.random.manual_seed(seed)
 model = model_class(*model_layout)
 
@@ -162,7 +164,7 @@ for i in range(steps - steps_left, steps):
     with torch.no_grad():
         energies[i, 0] = (operator_expect(sample_space, model, lambda sps, psi: H(sps, psi, ainvsquared), prob)
                                / state_norm(sample_space, model, prob)).detach().to("cpu").numpy()
-        e_subtract = energies[i, 0]
+        e_subtract = e_subtract_damping * e_subtract + (1 - e_subtract_damping) * energies[i, 0]
                                
     sol = updates[-1]
     ie_sample[i] = torch.sum(torch.abs(M_R_log[-1] @ sol + E_L_R_log[-1])) / torch.sum(E_L_R_log[-1])

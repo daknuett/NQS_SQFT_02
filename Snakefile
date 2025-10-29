@@ -156,6 +156,7 @@ rule imaginary_time_evolution_Ecurrsubtract:
         initial_undersampling = 2,
         initial_boundary_factor = 0.6,
         initial_stepwidth_factor = 0.5,
+        e_subtract_damping=0.95,
     output:
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/models/model_{t_stop}_{steps}_{ainvsquared}.pt",
         "data/{ndof}/{model_layout}_{integrator}_initial/{n_samples}_{boundary}_SCE/energy/energy_{t_stop}_{steps}_{ainvsquared}.npy",

@@ -44,7 +44,7 @@ class ConvModelRe(torch.nn.Module):
         x = self.nl(self.deep_layers[-1](self.periodic_pad(x)))
         return x
 
-class ModelConvBL(torch.nn.Module):
+class SubModelConvBL(torch.nn.Module):
     def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
         super().__init__()
         self.end_model_linear = torch.nn.Linear(ndof, 1, dtype=torch.double)
@@ -54,9 +54,9 @@ class ModelConvBL(torch.nn.Module):
     def forward(self, features):
         x = self.mr(features)
         x = self.end_model_linear(x) + self.end_model_bilinear(x, x)
-        return torch.exp(x).squeeze()
+        return x
 
-class ModelConvL(torch.nn.Module):
+class SubModelConvL(torch.nn.Module):
     def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
         super().__init__()
         self.end_model_linear = torch.nn.Linear(ndof, 1, dtype=torch.double)
@@ -65,10 +65,46 @@ class ModelConvL(torch.nn.Module):
     def forward(self, features):
         x = self.mr(features)
         x = self.end_model_linear(x)
-        return torch.exp(x).squeeze()
+        return x
+
+class ReModelConvBL(torch.nn.Module):
+    def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
+        super().__init__()
+        self.rea = SubModelConvBL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+        self.rep = SubModelConvBL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+
+    def forward(self, features):
+        return (torch.cos(self.rep(features)) * torch.exp(self.rea(features))).squeeze()
 
 
-class ModelRe(torch.nn.Module):
+class ReModelConvL(torch.nn.Module):
+    def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
+        super().__init__()
+        self.rea = SubModelConvL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+        self.rep = SubModelConvL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+
+    def forward(self, features):
+        return (torch.cos(self.rep(features)) * torch.exp(self.rea(features))).squeeze()
+
+class ModelConvBL(torch.nn.Module):
+    def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
+        super().__init__()
+        self.real = ReModelConvBL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+        self.imag = ReModelConvBL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+
+    def forward(self, features):
+        return torch.complex(self.real(features), self.imag(features))
+
+class ModelConvL(torch.nn.Module):
+    def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True, kernel_size=3):
+        super().__init__()
+        self.real = ReModelConvL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+        self.imag = ReModelConvL(ndof, nlayer_broad, broad_width, nl, residual, kernel_size)
+
+    def forward(self, features):
+        return torch.complex(self.real(features), self.imag(features))
+
+class DenseLinearModel(torch.nn.Module):
     def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True):
         super().__init__()
         self.residual = residual
@@ -95,13 +131,24 @@ class ModelRe(torch.nn.Module):
         features = self.deep_layers[-1].forward(features)
         return features
 
+class ModelRe(torch.nn.Module):
+    def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True):
+        super().__init__()
+        self.rea = DenseLinearModel(ndof, nlayer_broad, broad_width, nl=nl, residual=residual)
+        self.rep = DenseLinearModel(ndof, nlayer_broad, broad_width, nl=nl, residual=residual)
+
+    def forward(self, features):
+        return torch.cos(self.rep(features)) * torch.exp(self.rea(features))
+
+
 class ModelDense(torch.nn.Module):
     def __init__(self, ndof, nlayer_broad, broad_width, nl=torch.tanh, residual=True):
         super().__init__()
-        self.mr = ModelRe(ndof, nlayer_broad, broad_width, nl=nl, residual=residual)
+        self.real = ModelRe(ndof, nlayer_broad, broad_width, nl=nl, residual=residual)
+        self.imag = ModelRe(ndof, nlayer_broad, broad_width, nl=nl, residual=residual)
     def forward(self, features):
-        features = self.mr.forward(features)
-        return torch.exp(features)
+        return torch.complex(self.real(features), self.imag(features))
+
 
 def get_M(sample_space, model, proj=lambda x: x):
     M = torch.zeros(sample_space.shape[0], get_n_params(model, proj), dtype=sample_space.dtype)

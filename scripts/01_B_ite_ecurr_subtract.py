@@ -81,6 +81,8 @@ model = model_class(*model_layout)
 updates = []
 M_R_log = []
 E_L_R_log = []
+M_I_log = []
+E_L_I_log = []
 model_log = []
 sample_spaces = []
 
@@ -110,6 +112,8 @@ for i in range(steps_initial):
 
     M_R_log = [elmr_store.M_R]
     E_L_R_log = [elmr_store.E_L_R]
+    M_I_log = [elmr_store.M_I]
+    E_L_I_log = [elmr_store.E_L_I]
 
     
     for p, pdn in zip(model.parameters(), reshape_params(params_after, model)):
@@ -123,8 +127,11 @@ for i in range(steps_initial):
                                / state_norm(sample_space, model, prob)).detach().to("cpu").numpy()
         e_subtract = energies[i // steps_per_step_initial, 0]
                                
-    sol = updates[-1]
-    ie_sample[i // steps_per_step_initial] = torch.sum(torch.abs(M_R_log[-1] @ sol + E_L_R_log[-1])) / torch.sum(E_L_R_log[-1])
+    sol_R = updates[-1][:params_after.shape[0] // 2]
+    sol_I = updates[-1][params_after.shape[0] // 2:]
+
+    ie_sample[i // steps_per_step_initial] = (torch.sum(torch.abs(M_R_log[-1] @ sol_R + E_L_R_log[-1])) / torch.sum(E_L_R_log[-1])
+                                                    + torch.sum(torch.abs(M_I_log[-1] @ sol_I + E_L_I_log[-1])) / torch.sum(E_L_I_log[-1]))
 
     print(f"{mdl_str}[I][{i*delta_initial:2.1f}] {(i+1) / steps_initial * 100:5.1f} % <E>_r = {energies[i // steps_per_step_initial, 0]:5.2f} (s)     {tl.get_formatted_eta(i+1, steps_initial)}   ", end="\n")
     if i % save_every_n_initial == 0:
@@ -153,6 +160,8 @@ for i in range(steps - steps_left, steps):
 
     M_R_log = [elmr_store.M_R]
     E_L_R_log = [elmr_store.E_L_R]
+    M_I_log = [elmr_store.M_I]
+    E_L_I_log = [elmr_store.E_L_I]
 
     
     for p, pdn in zip(model.parameters(), reshape_params(params_after, model)):
@@ -166,8 +175,11 @@ for i in range(steps - steps_left, steps):
                                / state_norm(sample_space, model, prob)).detach().to("cpu").numpy()
         e_subtract = e_subtract_damping * e_subtract + (1 - e_subtract_damping) * energies[i, 0]
                                
-    sol = updates[-1]
-    ie_sample[i] = torch.sum(torch.abs(M_R_log[-1] @ sol + E_L_R_log[-1])) / torch.sum(E_L_R_log[-1])
+    sol_R = updates[-1][:params_after.shape[0] // 2]
+    sol_I = updates[-1][params_after.shape[0] // 2:]
+
+    ie_sample[i // steps_per_step_initial] = (torch.sum(torch.abs(M_R_log[-1] @ sol_R + E_L_R_log[-1])) / torch.sum(E_L_R_log[-1])
+                                                    + torch.sum(torch.abs(M_I_log[-1] @ sol_I + E_L_I_log[-1])) / torch.sum(E_L_I_log[-1]))
 
     print(f"{mdl_str}[{i*delta:2.1f}] {(i+1) / steps * 100:5.1f} % <E>_r = {energies[i, 0]:5.2f} (s)     {tl.get_formatted_eta(i+1 - (steps - steps_left), steps_left)}   ", end="\n")
     if i % save_every_n == 0:

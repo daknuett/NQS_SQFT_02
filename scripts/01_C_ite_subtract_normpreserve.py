@@ -139,7 +139,7 @@ tl = TimingLogger(f"ITE {mdl_str}")
 sample_space = torch.zeros(*sampling_shape, dtype=torch.double)
 sample_space, probability = continue_bounded_importance_sample(lambda x: H(x, model, ainvsquared), sample_space, boundary, sampling_sigma, sampling_equilibrate)
 sample_space_ref = torch.clone(sample_space)
-probability_ref = torch.clone(probability_ref)
+probability_ref = torch.clone(probability)
 prob_ref = lambda _: 1 / probability_ref / sampling_shape[0]
 with torch.no_grad():
     norm_ref = state_norm(sample_space_ref, model, prob_ref)
@@ -151,9 +151,9 @@ for i in range(steps - steps_left, steps):
     prob = lambda _: 1 / probability / sampling_shape[0]
 
     with torch.no_grad():
-        norm_here = state_norm(sample_space_ref, model, probability_ref)
+        norm_here = state_norm(sample_space_ref, model, prob_ref)
 
-    e_subtract += torch.log(norm_ref / norm_here)
+    e_subtract += snakemake.params.esubtract_dampening * torch.log(norm_ref / norm_here)
     state_norm_log[i] = norm_here
     energy_subtract[i] = e_subtract
 
